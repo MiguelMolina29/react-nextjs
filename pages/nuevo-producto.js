@@ -6,11 +6,11 @@ const Heading = styled.h1`
   color: red;
 `
 
-export default function Home() {
+export default function NuevoProducto() {
   return (
     <div>
       <Layout>
-        <h1>Inicio</h1>
+        <h1>Nuevo prod</h1>
       </Layout>
     </div>
   )
