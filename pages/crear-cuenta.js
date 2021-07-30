@@ -1,16 +1,52 @@
 import React from 'react';
-import styled from '@emotion/styled';
+import { css } from '@emotion/react';
 import Layout from '../components/layout/Layout';
+import { Formulario, Campo, InputSubmit } from '../components/ui/Formulario';
 
-const Heading = styled.h1`
-  color: red;
-`
 
 export default function CrearCuenta() {
   return (
     <div>
       <Layout>
-        <h1>Crear Cuenta</h1>
+        <h1
+          css={css`
+            text-align: center; 
+            margin-top: 5rem;
+          `}
+        >Crear Cuenta</h1>
+          <Formulario>
+            <Campo>
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                placeholder="Tu nombre"
+                name="nombre"
+              />
+            </Campo>
+
+            <Campo>
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="Tu Email"
+                name="email"
+              />
+            </Campo>
+
+            <Campo>
+              <label htmlFor="nombre">Password</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="Tu Password"
+                name="password"
+              />
+            </Campo>
+
+            <InputSubmit type="submit" value="Crear Cuenta" />
+          </Formulario>
       </Layout>
     </div>
   )
