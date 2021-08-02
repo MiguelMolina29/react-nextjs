@@ -44,6 +44,7 @@ const CrearCuenta = () => {
   return (
     <div>
       <Layout>
+        <>
         <h1
           css={css`
             text-align: center; 
@@ -103,6 +104,8 @@ const CrearCuenta = () => {
 
             <InputSubmit type="submit" value="Crear Cuenta" />
           </Formulario>
+        </>
+
       </Layout>
     </div>
   )
