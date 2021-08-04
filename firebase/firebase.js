@@ -1,13 +1,17 @@
 import app from "firebase/app";
 import 'firebase/auth';
 import  firebaseConfig  from "./config";
+import 'firebase/firestore';
+import 'firebase/storage';
 
 class Firebase {
     constructor() {
         if(!app.apps.length) {
             app.initializeApp(firebaseConfig)
         }
-        this.auth = app.auth()
+        this.auth = app.auth();
+        this.db = app.firestore();
+        this.storage = app.storage();
     }
 
     // Registra usuario
