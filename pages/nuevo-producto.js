@@ -11,6 +11,7 @@ import FileUploader from 'react-firebase-file-uploader';
 // Validaciones
 import useValidacion from '../hooks/useValidacion';
 import validarCrearProducto from '../validacion/validarCrearProducto';
+import Error404 from '../components/layout/404';
 
 const STATE_INICIAL = {
   nombre: '',
@@ -45,7 +46,7 @@ export default function NuevoProducto() {
   const router = useRouter()
 
   // Context con las operaciones crud de firebase
-  const {usuario, firebase} = useContext(FirebaseContext)
+  const {usuario, firebase} = useContext(FirebaseContext);
 
   async function crearProducto() {
     
@@ -63,7 +64,11 @@ export default function NuevoProducto() {
       descripcion,
       votos: 0,
       comentarios: [],
-      creado: Date.now()
+      creado: Date.now(),
+      creador: {
+        id: usuario.uid,
+        nombre: usuario.displayName
+      }
     }
 
     // Insertar en la base de datos
@@ -99,6 +104,7 @@ export default function NuevoProducto() {
   return (
     <div>
       <Layout>
+        {usuario ? <Error404/> : (
         <>
         <h1
           css={css`
@@ -197,6 +203,7 @@ export default function NuevoProducto() {
             <InputSubmit type="submit" value="Crear Producto" />
           </Formulario>
         </>
+        )}
 
       </Layout>
     </div>
