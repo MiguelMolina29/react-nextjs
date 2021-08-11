@@ -68,7 +68,8 @@ export default function NuevoProducto() {
       creador: {
         id: usuario.uid,
         nombre: usuario.displayName
-      }
+      },
+      haVotado: []
     }
 
     // Insertar en la base de datos
@@ -104,7 +105,7 @@ export default function NuevoProducto() {
   return (
     <div>
       <Layout>
-        {usuario ? <Error404/> : (
+        {!usuario ? <Error404/> : (
         <>
         <h1
           css={css`

@@ -19,11 +19,22 @@ const ContenedorProducto = styled.div`
     }
 `;
 
+const CreadorProducto = styled.p`
+    padding: .5rem 2rem;
+    background-color: #DA552F;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+`;
+
 const Producto = () => {
 
     // State del componente
-    const [producto, setProducto] = useState({})
-    const [error, setError] = useState(false)
+    const [producto, setProducto] = useState({});
+    const [error, setError] = useState(false);
+    const [comentario, setComentario] = useState({});
 
     // Routing para obtener el id actual 
     const router = useRouter();
@@ -45,11 +56,77 @@ const Producto = () => {
             }   
             obtenerProducto()
         }
-    }, [id]);
+    }, [id, producto]);
 
     if(Object.keys(producto).length === 0) return 'Cargando'
 
-    const {comentarios, creado, descripcion, empresa, nombre, url, urlImagen, votos, creador} = producto
+    const {comentarios, creado, descripcion, empresa, nombre, url, urlImagen, votos, creador, haVotado} = producto;
+
+    // Administrar y validar los votos
+    const votarProducto = () => {
+        if(!usuario) {
+            return router.push('/login')
+        }
+
+        // Obtener y sumar un nuevo voto
+        const nuevoTotal = votos + 1;
+
+        // Verificar si el usuario actual ha votado
+        if(haVotado.includes(usuario.uid)) return;
+
+        // Guardar el id del usuario que ha votado
+        const nuevoHaVotado = [...haVotado, usuario.uid];
+
+        // Actualizar en la DB
+        firebase.db.collection('productos').doc(id).update({votos: nuevoTotal, haVotado: nuevoHaVotado})
+
+        // Actualizar el state
+        setProducto({
+            ...producto,
+            votos: nuevoTotal
+        })
+    }
+
+    // Funciones para crear comentarios
+    const comentarioChange = e => {
+        setComentario({
+            ...comentario,
+            [e.target.name]: e.target.value
+        })
+    };
+
+    // Identifica si el comentario es el creador del producto
+    const esCreador = id => {
+        if(creador.id === id) {
+            return true
+        }
+    }
+
+    const agregarComentario = e => {
+        e.preventDefault();
+
+        if(!usuario) {
+            return router.push('/login')
+        }
+
+        // Informacion extra al comentario
+        comentario.usuarioId = usuario.uid;
+        comentario.usuarioNombre = usuario.displayName;
+
+        // Tomar copia de comentarios y agregarlos al arreglo
+        const nuevosComentarios = [...comentarios, comentario];
+
+        // Actualizar la base de datos
+        firebase.db.collection('productos').doc(id).update({
+            comentarios: nuevosComentarios
+        })
+
+        // Actualizar el state
+        setProducto({
+            ...producto,
+            comentarios: nuevosComentarios
+        })
+    }
 
     return (
         <Layout>
@@ -74,9 +151,11 @@ const Producto = () => {
                             {usuario && (
                                 <>
                                 <h2>Agrega tu comentario</h2>
-                                <form>
+                                <form
+                                    onSubmit={agregarComentario}
+                                >
                                     <Campo>
-                                        <input type="text" name="mensaje"/>
+                                        <input type="text" name="mensaje" onChange={comentarioChange}/>
                                     </Campo>
                                     <InputSubmit type="submit" value="Agregar Comentario" />
                                 </form>
@@ -89,12 +168,29 @@ const Producto = () => {
                                 `}
                             >Comentarios</h2>
 
-                            {comentarios.map(comentario => (
-                                <li>
-                                    <p>{comentario.nombre}</p>
-                                    <p>Escrito por: {comentrio.usuarioNombre} </p>
-                                </li>
-                            ))}
+                            {comentarios.length === 0 ? "Aun no hay comentarios" : (
+                                <ul>
+                                    {comentarios.map((comentario, i) => (
+                                        <li
+                                            key={`${comentario.usuarioId}-${i}`}
+                                            css={css`
+                                                border: 1px solid #e1e1e1;
+                                                padding: 2rem;
+                                            `}
+                                        >
+                                            <p>{comentario.mensaje}</p>
+                                            <p>Escrito por: <span
+                                                    css={css`
+                                                        font-weight: bold;
+                                                    `}
+                                                >{comentario.usuarioNombre}</span> 
+                                            </p>
+                                            {esCreador(comentario.usuarioId) && <CreadorProducto>Es Creador</CreadorProducto>}
+                                        </li>
+                                    ))}
+                                </ul> 
+                            )}
+                            
                         </div>
 
                         <aside>
@@ -114,7 +210,9 @@ const Producto = () => {
                                 > {votos} Votos </p>
 
                                 {usuario && (
-                                    <Boton>
+                                    <Boton
+                                        onClick={votarProducto}
+                                    >
                                         Votar
                                     </Boton>
                                 )}
