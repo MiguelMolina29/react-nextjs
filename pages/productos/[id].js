@@ -35,6 +35,7 @@ const Producto = () => {
     const [producto, setProducto] = useState({});
     const [error, setError] = useState(false);
     const [comentario, setComentario] = useState({});
+    const [consultarDB, setConsultarDB] = useState(true);
 
     // Routing para obtener el id actual 
     const router = useRouter();
@@ -44,21 +45,23 @@ const Producto = () => {
     const {firebase, usuario} = useContext(FirebaseContext)
 
     useEffect(() => {
-        if(id) {
+        if(id && consultarDB ) {
             const obtenerProducto = async () => {
                 const productoQuery = await firebase.db.collection('productos').doc(id)
                 const producto = await productoQuery.get()
                 if(producto.exists) {
                     setProducto(producto.data());
+                    setConsultarDB(false);
                 }else {
                     setError( true );
+                    setConsultarDB(false);
                 }
             }   
             obtenerProducto()
         }
-    }, [id, producto]);
+    }, [id]);
 
-    if(Object.keys(producto).length === 0) return 'Cargando'
+    if(Object.keys(producto).length === 0 && !error) return 'Cargando'
 
     const {comentarios, creado, descripcion, empresa, nombre, url, urlImagen, votos, creador, haVotado} = producto;
 
@@ -84,7 +87,9 @@ const Producto = () => {
         setProducto({
             ...producto,
             votos: nuevoTotal
-        })
+        });
+
+        setConsultarDB(true); // Hay un voto, por lo cual consultar a la BD
     }
 
     // Funciones para crear comentarios
@@ -125,15 +130,41 @@ const Producto = () => {
         setProducto({
             ...producto,
             comentarios: nuevosComentarios
-        })
+        });
+
+        setConsultarDB(true); // Hay un comentario, por lo cual consultar a la BD
+    }
+
+    // Funcion para borrar producto ( creador del producto )
+    const puedeBorrar = () => {
+        if(!usuario) return false;
+
+        if(creador.id === usuario.uid) {
+            return true
+        }
+    }
+
+    // Elimina un producto de la db
+    const eliminarProducto = async () => {
+        if(!usuario) {
+            return router.push('/login')
+        }
+        if(creador.id !== usuario.uid) {
+            return router.push('/login')
+        }
+        try {
+            await firebase.db.collection('productos').doc(id).delte();
+            router.push('/')
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (
         <Layout>
             <>
-                { error && <Error404/> }
-
-                <div className="contenedor">
+                { error ? <Error404/> : (
+                    <div className="contenedor">
                     <h1
                         css={css`
                             text-align: center;
@@ -219,7 +250,16 @@ const Producto = () => {
                             </div>
                         </aside>
                     </ContenedorProducto>
+
+                    { puedeBorrar() && 
+                        <Boton
+                            onClick={eliminarProducto}
+                        >Eliminar Producto</Boton>
+                    }
                 </div>
+                )}
+
+                
             </>
         </Layout>
     )
